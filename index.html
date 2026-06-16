@@ -158,33 +158,27 @@ function markFieldTicketsBilled(projId){
 
 function toggleFieldTicketBilled(projId, fileId){
   if(!isPriv()){showToast("Only Admin or GM can mark as billed","error");return;}
-  const proj = state.projects.find(p=>p.id===projId);
-  if(!proj) return;
-  const updated = JSON.parse(JSON.stringify(proj));
-  const ftFiles = updated.folders.field_tickets || [];
-  const file = ftFiles.find(f=>f.id===fileId);
-  if(file) file.billed = !file.billed;
-  // Check if ALL field tickets are billed
-  const allBilled = ftFiles.length > 0 && ftFiles.every(f=>f.billed);
-  updated.hasNewFieldTickets = !allBilled && ftFiles.some(f=>!f.billed);
+  const proj=state.projects.find(p=>p.id===projId);
+  if(!proj)return;
+  const updated=JSON.parse(JSON.stringify(proj));
+  const ft=updated.folders.field_tickets||[];
+  const f=ft.find(x=>x.id===fileId);
+  if(f)f.billed=!f.billed;
   fbSaveProject(updated);
-  showToast(file&&file.billed ? "✓ Marked as billed" : "Marked as unbilled");
+  showToast(f&&f.billed?"✓ Marked as billed":"Marked as unbilled");
 }
 
 function saveReceiptAmt(fileId){
-  const inp = document.getElementById('ramt_'+fileId);
-  if(!inp) return;
-  const raw = inp.value.replace(/[^0-9.]/g,'');
-  const amt = parseFloat(raw);
-  if(!isNaN(amt) && amt > 0){
-    state.receiptAmounts[fileId] = amt.toFixed(2);
+  const inp=document.getElementById('ramt_'+fileId);
+  if(!inp)return;
+  const raw=inp.value.replace(/[^0-9.]/g,'');
+  const amt=parseFloat(raw);
+  if(!isNaN(amt)&&amt>0){
+    state.receiptAmounts[fileId]=amt.toFixed(2);
     fbSaveReceiptAmounts();
     showToast('$'+amt.toFixed(2)+' saved ✓');
-  } else {
-    showToast('Enter a valid amount','error');
-    return;
-  }
-  state.editingReceiptId = null;
+  }else{showToast('Enter a valid amount','error');return;}
+  state.editingReceiptId=null;
   render();
 }
 
@@ -592,10 +586,9 @@ function render(){
 
   // ── MAIN APP ──
   const activeProjects=state.projects.filter(p=>!p.archived);
-    // Compute red status from actual file billed flags
     activeProjects.forEach(p=>{
-      const ftFiles = (p.folders&&p.folders.field_tickets) ? p.folders.field_tickets : [];
-      p._hasUnbilledTickets = ftFiles.length > 0 && ftFiles.some(f=>!f.billed);
+      const ft=(p.folders&&p.folders.field_tickets)||[];
+      p._unbilled=ft.length>0&&ft.some(f=>!f.billed);
     });
   const archivedProjects=state.projects.filter(p=>p.archived);
   const proj=getProject();
@@ -661,7 +654,7 @@ function render(){
             return `<div class="card project-card" style="padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px" onclick="state.activeProjectId='${p.id}';state.screen='project';render()">
               <div style="display:flex;align-items:center;gap:14px">
                 <div style="width:44px;height:44px;background:#1e3a5a;border:1.5px solid #2a5080;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">📁</div>
-                <div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-weight:700;font-size:15px;color:${p._hasUnbilledTickets?'#ff4d4f':'#e8eaf0'}">${p.name}${p._hasUnbilledTickets?'  🔴':''}</div>${p.startDate?'<div style="display:flex;align-items:center;gap:4px;background:#1e3a5a;border:1px solid #2a5080;border-radius:6px;padding:2px 9px"><span style="font-size:11px;color:#4a90e2;font-weight:600">📅 '+new Date(p.startDate+"T00:00:00").toLocaleDateString([],{month:"short",day:"numeric",year:"numeric"})+'</span></div>':''}</div><div style="color:#606480;font-size:12px;margin-top:3px">${fmt(p.created)} · ${total} file${total!==1?"s":""}</div></div>
+                <div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><div style="font-weight:700;font-size:15px;color:'+(p._unbilled?"'#ff4d4f'":"'#e8eaf0'")+'">${p.name}'+(p._unbilled?' 🔴':'')+'</div>${p.startDate?'<div style="display:flex;align-items:center;gap:4px;background:#1e3a5a;border:1px solid #2a5080;border-radius:6px;padding:2px 9px"><span style="font-size:11px;color:#4a90e2;font-weight:600">📅 '+new Date(p.startDate+"T00:00:00").toLocaleDateString([],{month:"short",day:"numeric",year:"numeric"})+'</span></div>':''}</div><div style="color:#606480;font-size:12px;margin-top:3px">${fmt(p.created)} · ${total} file${total!==1?"s":""}</div></div>
               </div>
               <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
                 <span class="tag">Open →</span>
@@ -762,17 +755,23 @@ function render(){
                 ${isRec?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                   ${state.editingReceiptId===file.id?`
                     <span style="color:#34c759;font-size:13px;font-weight:700">$</span>
-                    <input id="ramt_${file.id}" placeholder="0.00" style="width:80px;background:#0f1117;border:1.5px solid #34c759;border-radius:6px;padding:3px 8px;color:#e8eaf0;font-size:13px;font-family:inherit" onkeydown="if(event.key==='Enter')saveReceiptAmt('${file.id}');else if(event.key==='Escape'){state.editingReceiptId=null;render();}"/>
-                    <button class="btn btn-save" style="padding:3px 9px;font-size:12px" onclick="saveReceiptAmt('${file.id}')">✓</button>
+                    <input id="ramt_${file.id}" value="${state.receiptInput}" placeholder="0.00" style="width:80px;background:#0f1117;border:1.5px solid #34c759;border-radius:6px;padding:3px 8px;color:#e8eaf0;font-size:13px"  onkeydown="if(event.key==='Enter')saveReceiptAmt('${file.id}');if(event.key==='Escape')state.editingReceiptId=null;render()"/>
+                    <button class="btn btn-save" style="padding:3px 9px;font-size:12px" onclick="state.receiptAmounts['${file.id}']=state.receiptInput;state.editingReceiptId=null;fbSaveReceiptAmounts();showToast('Amount saved');render()">✓</button>
                     <button class="btn btn-ghost" style="padding:3px 8px;font-size:12px" onclick="state.editingReceiptId=null;render()">✕</button>
-                  ``:""}
+                  `:state.scanningReceiptId===file.id?`<span style="font-size:12px;color:#f5a623"><span class="spinning">⏳</span> Scanning…</span>
+                  `:parsed?`
+                    <span style="color:#34c759;font-weight:700;font-size:14px">$${parsed.toFixed(2)}</span>
+                    <span style="font-size:11px;color:#606480">· AI detected</span>
+                    <button onclick="state.editingReceiptId='${file.id}';state.receiptInput='${amt}';render()" style="background:none;border:none;cursor:pointer;color:#4a90e2;font-size:12px;text-decoration:underline;padding:0">Edit</button>
+                  `:`<div style="display:flex;align-items:center;gap:6px">
+                    ${file.type?.startsWith("image/")&&file.downloadURL?`<button onclick="scanReceiptWithAI(${JSON.stringify(file)})" style="background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);border-radius:6px;cursor:pointer;color:#f5a623;font-size:12px;font-weight:600;padding:3px 10px">✨ Auto-scan</button>`:""}
                     <button onclick="state.editingReceiptId='${file.id}';state.receiptInput=state.receiptAmounts['${file.id}']||'';render()" style="background:none;border:none;cursor:pointer;color:#606480;font-size:12px;padding:0">+ Enter manually</button>
                   </div>`}
                 </div>`:""}
               </div>
             </div>
             <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;margin-left:8px">
-              ${activeFolder==="field_tickets"&&isPriv()?`<button class="btn" style="padding:6px 10px;font-size:11px;font-weight:700;border-radius:8px;border:1px solid ${file.billed?'rgba(52,199,89,.5)':'rgba(255,77,79,.4)'};background:${file.billed?'rgba(52,199,89,.15)':'rgba(255,77,79,.13)'};color:${file.billed?'#34c759':'#ff7875'}" onclick="toggleFieldTicketBilled('${state.activeProjectId}','${file.id}')">${file.billed?'✓ Billed':'Mark Billed'}</button>`:""}
+              ${activeFolder==="field_tickets"&&isPriv()?`<button class="btn" style="padding:5px 10px;font-size:11px;font-weight:700;border-radius:8px;border:1px solid ${file.billed?"rgba(52,199,89,.5)":"rgba(255,77,79,.4)"};background:${file.billed?"rgba(52,199,89,.15)":"rgba(255,77,79,.13)"};color:${file.billed?"#34c759":"#ff7875"}" onclick="toggleFieldTicketBilled('${state.activeProjectId}','${file.id}')">${file.billed?"✓ Billed":"Mark Billed"}</button>`:""}
               ${isPriv()&&file.downloadURL?`<button class="btn btn-export" style="padding:6px 9px;font-size:12px" onclick="state.showExport=${JSON.stringify(file).replace(/"/g,'&quot;')};render()">📤</button>`:""}
               ${file.downloadURL?`<a href="${file.downloadURL}" target="_blank" download="${file.name}" style="text-decoration:none"><button class="btn btn-ghost" style="padding:6px 9px;font-size:12px">⬇</button></a>`:""}
               ${isPriv()?`<button class="btn btn-danger" style="padding:6px 9px;font-size:12px" onclick="deleteFile('${file.id}')">🗑️</button>`:""}
@@ -1229,10 +1228,9 @@ function render(){
 }
 
 function attachEvents(){
-  // Auto-focus receipt input if editing
   if(state.editingReceiptId){
-    const inp = document.getElementById('ramt_'+state.editingReceiptId);
-    if(inp){ inp.focus(); const v=state.receiptAmounts[state.editingReceiptId]||''; inp.value=v; inp.select(); }
+    const inp=document.getElementById('ramt_'+state.editingReceiptId);
+    if(inp){inp.focus();inp.value=state.receiptAmounts[state.editingReceiptId]||'';inp.select();}
   }
   // PWA install prompt
   if(window._deferredPrompt){
