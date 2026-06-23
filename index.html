@@ -758,8 +758,8 @@ function render(){
                 ${isRec?`<div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
                   ${state.editingReceiptId===file.id?`
                     <span style="color:#34c759;font-size:13px;font-weight:700">$</span>
-                    <input id="ramt_${file.id}" value="${state.receiptInput}" placeholder="0.00" style="width:80px;background:#0f1117;border:1.5px solid #34c759;border-radius:6px;padding:3px 8px;color:#e8eaf0;font-size:13px"  onkeydown="if(event.key==='Enter')saveReceiptAmt('${file.id}');if(event.key==='Escape')state.editingReceiptId=null;render()"/>
-                    <button class="btn btn-save" style="padding:3px 9px;font-size:12px" onclick="state.receiptAmounts['${file.id}']=state.receiptInput;state.editingReceiptId=null;fbSaveReceiptAmounts();showToast('Amount saved');render()">✓</button>
+                    <input id="ramt_${file.id}" value="${state.receiptInput}" placeholder="0.00" style="width:80px;background:#0f1117;border:1.5px solid #34c759;border-radius:6px;padding:3px 8px;color:#e8eaf0;font-size:13px" oninput="state.receiptInput=this.value" onkeydown="if(event.key==='Enter'){state.receiptAmounts['${file.id}']=this.value;state.editingReceiptId=null;fbSaveReceiptAmounts();showToast('Saved ✓');render();}if(event.key==='Escape'){state.editingReceiptId=null;render();}"/>
+                    <button class="btn btn-save" style="padding:3px 9px;font-size:12px" onclick="var v=document.getElementById('ramt_'+'${file.id}');if(v){state.receiptAmounts['${file.id}']=v.value;state.editingReceiptId=null;fbSaveReceiptAmounts();showToast('Saved ✓');render();}">✓</button>
                     <button class="btn btn-ghost" style="padding:3px 8px;font-size:12px" onclick="state.editingReceiptId=null;render()">✕</button>
                   `:parsed?`
                     <span style="color:#34c759;font-weight:700;font-size:14px">$${parsed.toFixed(2)}</span>
@@ -1241,7 +1241,7 @@ function attachEvents(){
 
 // ── PWA INSTALL ──
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();window._deferredPrompt=e;document.getElementById("pwaBanner")?.classList.add("show");});
-if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1782248759").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
+if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1782248990").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
 
 // iOS PWA hint
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
