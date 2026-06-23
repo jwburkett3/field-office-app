@@ -151,7 +151,12 @@ function markFieldTicketsBilled(projId){
   if(!isPriv()){showToast("Only Admin or GM can mark as billed","error");return;}
   const proj=state.projects.find(p=>p.id===projId);
   if(!proj)return;
-  const updated={...proj,hasNewFieldTickets:false,fieldTicketsBilled:true};
+  const updated=JSON.parse(JSON.stringify(proj));
+  if(updated.folders&&updated.folders.field_tickets){
+    updated.folders.field_tickets=updated.folders.field_tickets.map(f=>({...f,billed:true}));
+  }
+  updated.hasNewFieldTickets=false;
+  updated.fieldTicketsBilled=true;
   fbSaveProject(updated);
   showToast("Field tickets marked as billed ✓");
 }
@@ -1238,7 +1243,7 @@ function attachEvents(){
 
 // ── PWA INSTALL ──
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();window._deferredPrompt=e;document.getElementById("pwaBanner")?.classList.add("show");});
-if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1782246551").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
+if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1782246904").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
 
 // iOS PWA hint
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
