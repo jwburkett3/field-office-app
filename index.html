@@ -1238,7 +1238,7 @@ function attachEvents(){
 
 // ── PWA INSTALL ──
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();window._deferredPrompt=e;document.getElementById("pwaBanner")?.classList.add("show");});
-if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1780952732").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
+if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1782242585").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
 
 // iOS PWA hint
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
