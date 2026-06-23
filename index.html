@@ -761,14 +761,13 @@ function render(){
                     <input id="ramt_${file.id}" value="${state.receiptInput}" placeholder="0.00" style="width:80px;background:#0f1117;border:1.5px solid #34c759;border-radius:6px;padding:3px 8px;color:#e8eaf0;font-size:13px"  onkeydown="if(event.key==='Enter')saveReceiptAmt('${file.id}');if(event.key==='Escape')state.editingReceiptId=null;render()"/>
                     <button class="btn btn-save" style="padding:3px 9px;font-size:12px" onclick="state.receiptAmounts['${file.id}']=state.receiptInput;state.editingReceiptId=null;fbSaveReceiptAmounts();showToast('Amount saved');render()">✓</button>
                     <button class="btn btn-ghost" style="padding:3px 8px;font-size:12px" onclick="state.editingReceiptId=null;render()">✕</button>
-                  `:state.scanningReceiptId===file.id?`<span style="font-size:12px;color:#f5a623"><span class="spinning">⏳</span> Scanning…</span>
+                  `:false?`<span></span>
                   `:parsed?`
                     <span style="color:#34c759;font-weight:700;font-size:14px">$${parsed.toFixed(2)}</span>
                     <span style="font-size:11px;color:#606480">· AI detected</span>
                     <button onclick="state.editingReceiptId='${file.id}';state.receiptInput='${amt}';render()" style="background:none;border:none;cursor:pointer;color:#4a90e2;font-size:12px;text-decoration:underline;padding:0">Edit</button>
                   `:`<div style="display:flex;align-items:center;gap:6px">
-                    ${file.type?.startsWith("image/")&&file.downloadURL?`<button onclick="scanReceiptWithAI(${JSON.stringify(file)})" style="background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.3);border-radius:6px;cursor:pointer;color:#f5a623;font-size:12px;font-weight:600;padding:3px 10px">✨ Auto-scan</button>`:""}
-                    <button onclick="state.editingReceiptId='${file.id}';state.receiptInput=state.receiptAmounts['${file.id}']||'';render()" style="background:none;border:none;cursor:pointer;color:#606480;font-size:12px;padding:0">+ Enter manually</button>
+                    <button onclick="state.editingReceiptId='${file.id}';state.receiptInput=state.receiptAmounts['${file.id}']||'';render()" style="background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.3);border-radius:6px;cursor:pointer;color:#34c759;font-size:12px;font-weight:600;padding:4px 12px">+ Enter Amount</button
                   </div>`}
                 </div>`:""}
               </div>
@@ -1243,7 +1242,7 @@ function attachEvents(){
 
 // ── PWA INSTALL ──
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();window._deferredPrompt=e;document.getElementById("pwaBanner")?.classList.add("show");});
-if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1782246904").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
+if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1782248554").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
 
 // iOS PWA hint
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
