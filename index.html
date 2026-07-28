@@ -316,12 +316,19 @@ async function fbSaveReceiptAmounts() {
 
 async function fbUploadFile(projectId, folderId, file) {
   const {ref,uploadBytes,getDownloadURL} = fbFns;
-  // Sanitize filename — remove special chars that break Firebase Storage paths
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
   const path = `projects/${projectId}/${folderId}/${Date.now()}_${safeName}`;
   const storageRef = ref(storage, path);
+  // Read file as ArrayBuffer first - fixes iOS Safari/Chrome upload issues
+  const arrayBuffer = await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result);
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(file);
+  });
+  const uint8 = new Uint8Array(arrayBuffer);
   const metadata = { contentType: file.type || "application/octet-stream" };
-  const snap = await uploadBytes(storageRef, file, metadata);
+  const snap = await uploadBytes(storageRef, uint8, metadata);
   const url = await getDownloadURL(snap.ref);
   return {storagePath: path, downloadURL: url};
 }
@@ -1257,7 +1264,7 @@ function attachEvents(){
 
 // ── PWA INSTALL ──
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();window._deferredPrompt=e;document.getElementById("pwaBanner")?.classList.add("show");});
-if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1782332982").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
+if("serviceWorker" in navigator){ navigator.serviceWorker.getRegistrations().then(regs=>{ Promise.all(regs.map(r=>r.unregister())).then(()=>{ navigator.serviceWorker.register("sw.js?v=1785270542").then(()=>console.log("SW fresh")).catch(e=>console.warn(e)); }); }); }
 
 // iOS PWA hint
 const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
